@@ -1,26 +1,8 @@
-/* @flow */
-
 const mm = require("micromatch");
 const { analyze, getStats } = require("../lib");
 const validate = require("../lib/validate");
 const { log, invalidStatsJson } = require("../lib/console/messages");
 const normalizeStats = require("../lib/normalize-stats");
-
-/*::
-import type { UpdateProgressBar } from '../lib/console/progress-bar';
-import type { Reporter } from '../lib/reporter';
-
-type Flags = {
-  limit: number,
-  filesOnly?: boolean,
-  modulesOnly?: boolean,
-  directOnly?: boolean,
-  transitiveOnly?: boolean,
-  duplicatesOnly?: boolean,
-  ignore?: string,
-  by?: string
-}
-*/
 
 module.exports = function defaultCommand(
   statsFilePath /*: string */,
@@ -60,5 +42,18 @@ module.exports = function defaultCommand(
   });
 
   const limit = pattern ? 0 : flags.limit >= 0 ? flags.limit : 20;
-  reporter.print(modules, report.chunks, flags, limit);
+  const reducedModules = modules.reduce(
+    (accumulator, currentValue) => ({
+      ...accumulator,
+      [currentValue.name]: {
+        chunks: currentValue.chunks
+      }
+    }),
+    {}
+  );
+  return {
+    modules: reducedModules,
+    chunks: report.chunks
+  };
+  // reporter.print(modules, report.chunks, flags, limit);
 };
